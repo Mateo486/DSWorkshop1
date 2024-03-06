@@ -1,0 +1,346 @@
+---
+title: "SHPE Linear Model Workshop"
+author: Mateo Aristizabal and Leonardo Chiappini
+date: "make sure to follow the R and RStudio setup doc at shorturl.at/setupdoc "
+output:
+  xaringan::moon_reader:
+    css: xaringan-themer.css
+    lib_dir: libs
+    nature:
+      highlightStyle: arta
+      highlightLines: true
+      ratio: "16.9"
+      countIncrementalSlides: false
+---
+
+```{r setup, include = FALSE}
+options(
+  htmltools.dir.version = FALSE,
+  htmltools.preserve.raw = FALSE
+)
+```
+
+```{r xaringan-themer, include = FALSE, warning = FALSE}
+library(xaringanthemer)
+style_duo(
+  primary_color = "#23395b", secondary_color = "#FFC000",
+  header_font_google = google_font("Josefin Sans"),
+  text_font_google = google_font("Montserrat", "300", "300i"),
+  code_font_google = google_font("Fir")
+)
+
+```
+
+# What is Data Science?
+
+Data Science is the domain of study that deals with vast volumes of data using modern tools and techniques to find unseen patterns within large sets of data. 
+
+- This involves the usage of machine learning algorithms to build predictive models, which come in the form of several different approaches.
+- Machine Learning algorithms rely heavily on statistics and programming to execute a successful project.
+---
+#What is R?
+- R is an open source scripting language for predictive analytics and data visualization. 
+
+-The language was designed for and by statisticians to facilitate the evaluation of large datasets that require a lot of memory usage.
+
+-The language has extended its use past its original intention of statistical analysis, and branched into the world of AI, machine learning, financial analysis, and more.
+
+---
+# Variables in R
+
+There are 5 Atomic types in R:
+  - logical (True or False)
+  - character ("short")
+  - integer (4 , 6) 
+  - double (2.5946)
+  = complex (imaginary numbers (dw))
+
+Programming heavily relies on assigning variables in R
+- You can name variables anything; however, you should name them as concise as possible for it to be interpretable
+
+```r
+shortKing <- 2
+SHPE <- 4
+shortking + SHPE
+[1] 6 
+```
+
+---
+
+# Mathematical Functions 
+
+R has built in mathematical functions to perform mathematical equations
+
+```r
+sqrt(4) # square root of 2
+
+log(10) # log 10
+
+exp(4) # e^4
+
+factorial(4) # 4!
+
+sin(2pi)
+
+abs(-4) # absolute value of -4
+
+14 %% 3 # remainder of 4 divided by 3
+[1] 2
+
+14 %/% 3 # integer division of 4 divided by 3
+[1] 4
+
+```
+Although you dont have to know ALL of these functions for the lab, it is important to familiarize yourself with these equations if you continue programming
+
+---
+# Vectors in R
+
+R is a vectorized language, meaning that several mathematical and logical operations occur in parallel with other R objects
+
+To create a vector, you must use the c() function
+
+```r
+x <- c(3,4,7,1)
+x
+# [1] 3 4 7 1
+
+length(x)
+# [1] 4
+```
+You can also index to a specific vector in R:
+
+```r
+x[2]
+# [1] 4
+```
+---
+# If Statements in R
+If statements are a conditional function in R that will only run if a given parameter is evaluated as TRUE.
+
+```r
+x <- 0.35
+
+if (x < 0.25 ){
+  print("Stormy Weather")
+} else if (x <= 0.50){
+  print("Cloudy weather")
+} else if( x <= 0.75){
+  print("Partly Sunny Weather")
+} else {
+  print("Sunny Weather")
+}
+
+##[1] "Cloudy Weather"
+```
+If statements are very useful when converting data types, especially in this workshop. A number of 0.35 may not mean anything when talking about weather, but an if statement allows you to convert the numerical data type into a string that the user can understand.
+
+---
+# Data Frames in R
+
+A Data Frame is an R object used to store tabular data
+
+The columns don't necessarily have to be of the same type (i.e. one column with doubles and another with characters)
+
+Frames are created with read.table() or read.csv
+
+
+---
+# Data Cleaning
+Although we will not have to clean up our data in today's lab, it is important to understand when and how to do so.
+
+  - You should clean up your data when:
+    - There are missing values
+    - There are NA values (very common in survey datasets)
+    - Duplicate rows
+    - numeric values stored as character data types
+  
+  - Next, you should check the missing value rate in your data.
+    - Very Small: Remove the rows from the dataset since it is unlikely to degrade the dataset.
+    - Very Large: Remove the entire column as it is unusable.
+    - Medium: Data Imputation Technique (Next Slide)
+    
+---
+# Data Cleaning Techniques
+
+  - If you have to complete the rest of your data, it is important to consider the following Techniques:
+    - Mean Imputation: Missing values are replaced with the mean of the values from other rows; however, this will       change your distribution as it does give more "worth" to the mean.
+    - Random Imputation: Missing values are replaced with random values from other rows. It is likely to preserve       distribution but is more susceptible to outliers.
+    - Regression Imputation: Replacing missing values regressed from other rows. Susceptible to the same issues as linear regression models (multicollinearity)
+    - Stochastic Regressive: Similar to regression imputation but uses "random noise" to account for errors in          real world data. Typically done with MICE package in R.
+    
+---
+# Our London Bikesharing Dataset
+
+```{r data, fig.align='center', message=FALSE, warning=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+data <- read.csv("https://raw.githubusercontent.com/LeoChiappini/DSWorkshop1/main/london_bikeshare.csv")
+data %>%
+  head(10) %>%
+  knitr::kable() %>%
+  kable_styling("hover")
+```
+
+---
+# Initializing the dataset
+To import the london bikeshare dataset into our environment, type in the following:
+```{r message=FALSE, warning=FALSE}
+library (dplyr)
+library (lubridate)
+
+data <- read.csv("https://raw.githubusercontent.com/LeoChiappini/DSWorkshop1/main/london_bikeshare.csv")
+```
+
+Storing the dataset as a variable will allow us to manipulate it accordingly using R.
+---
+# Cleaning up Column Names
+There are some column names in our dataset that dont make much sense without knowing where they come from. In order to rename these column names, we will do the following:
+```{r}
+data <- data %>%
+  rename(
+  count = cnt,
+  actual_temp = t1,
+  feel_like_temp = t2,
+  humidity = hum
+  )
+```
+
+Just from reading the column names above, there should be some columns that stick out to you as having possible multicollinearity issues. What could these columns be? Why?
+
+---
+# Converting Date into a Date
+We should also transform the data in the date column from a string to an actual date, as itll help us later on:
+
+```{r}
+data <- data %>%
+  mutate(timestamp_new = mdy_hm(timestamp)) %>%
+  mutate(date = as.Date(timestamp_new)) %>%
+  mutate(hour = hour(timestamp_new))
+  
+```
+
+---
+# Recoding the weather code
+As we discussed earlier, numeric values in logical columns may not make sense to someone that is unfamiliar with the dataset. Therefore, we are going to manipulate the values in the weather code column.
+.pull-left[
+  - As of right now, this is what the numbers mean:
+    - 1: Clear
+    - 2: Scattered Clouds
+    - 3: Broken Clouds
+    - 4: Cloudy
+    - 7: Rain/Light Rain Shower/Light Rain
+    - 10: Rain with Thunderstorm
+    - 26: Snowfall
+    - 94: Freezing Fog
+]
+.pull-right[
+To change these values to character types, we'll do the following:
+```{r}
+data <- data %>% mutate(weather_code_new = as.factor(recode(weather_code,
+"1" = "Clear",
+"2" = "Scattered Clouds",
+"3" = "Broken Clouds",
+"4" = "Cloudy",
+"7" = "Light Rain",
+"10" = "Rain w Thunderstorm",
+"26" = "Snow",
+"94" = "Freezing Fog" 
+)))
+
+```
+
+]
+---
+# Recoding Weekend, Holiday, and Season
+For the is_weekend column, 0 refers to weekday and 1 refers to weekend, so we will adjust as such:
+```{r}
+data <- data %>% mutate(is_weekend_new = as.factor(recode(is_weekend,
+                                                  "0" = "Weekday",
+                                                  "1" = "Weekend")))
+```
+For the is_holiday column, 1 refers to holiday and 0 refers to non holiday:
+```{r}
+data <- data %>% mutate(is_holiday_new = as.factor(recode(is_holiday,
+                                                  "0" = "Non-Holiday",
+                                                  "1" = "Holiday")))
+```
+For the season column, 0 is spring, 1 is summer, 2 is fall, and 3 is winter:
+```{r}
+data <- data %>% mutate(season_new = as.factor(recode(season,
+                                              "0" = "Spring",
+                                              "1" = "Summer",
+                                              "2" = "Fall",
+                                              "3" = "Winter")))
+```
+
+---
+# Data Visualization
+In order to display the dataset in a way that is readable and interpretable, we would like to create a graph that would fit our model. In order to do so, we will use the ggplot2 package which was designed specifically for data visualization.
+```{r}
+
+library(ggplot2)
+
+```
+
+---
+#Dot Plot Code 
+```{r}
+dot_plot <- ggplot(data, aes(x = actual_temp, y = count))+ 
+  geom_point() + 
+  labs(x = "Recorded Temperature", y = "Count", title =
+         "Recorded Temperature in London vs Bikeshare Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+---
+# Dot Plot
+```{r dot_plot, fig.align='center'}
+print(dot_plot)
+```
+
+---
+# Histogram Code
+
+```{r}
+histogram_data <- data %>% group_by(hour) %>%
+  summarize(total_count = sum(count, na.rm = TRUE))
+
+histogram <- ggplot(histogram_data, aes(x = hour)) +
+  geom_bar(aes(y = total_count), stat = "identity") + 
+  labs(x = "Hour", y = "Total Count", title = 
+         "Bikeshare Usage by Hour (24-Hour Format)") +
+  coord_cartesian(ylim = c(52800, 2087165))
+```
+
+---
+# Histogram
+```{r histogram, fig.align= 'center'}
+print(histogram)
+```
+
+---
+# Line Graph Code
+```{r}
+line_graph <- ggplot(histogram_data, aes(x = hour)) +
+  geom_line(aes(y = total_count), stat = "identity") +
+  labs(x = "Hour", y = "Total Count", title =
+         "Bikeshare Usage By Hour (24-Hour Format)")
+```
+
+---
+# Line Graph
+```{r line_graph, fig.align= 'center'}
+print(line_graph)
+```
+
+---
+# The Linear Regression Model.
+```{r Linear_Regression}
+library(car)
+
+#model <- lm(count ~ (feel_like_temp + humidity + weather_code_new + is_holiday_new + is_weekend_new), data = data) # REMEMBER WE RENAMED THE COLUMNS
+
+#vif_vals <- vif(lm(data = data))
+
